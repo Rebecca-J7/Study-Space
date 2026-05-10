@@ -3,28 +3,35 @@
 ## Purpose
 Define what the system should do, i.e., functionalities.
 
-## Example (Reference)
-Use this as a template for level of detail.
-
-### Functionality A: Chatbot FAQ Support
+### Functionality 1: VARK Learning Style Quiz
 - Input:
-    - Free-text user question (for example: "When are meetings?")
+  - User's answers to conversational quiz questions asked by Gemini
 - Output:
-    - Natural-language answer shown to the user
+  - A learning style result (Visual, Auditory, Reading/Writing, or Kinesthetic) with a percentage breakdown
 - Success:
-    - Returns an answer relevant to the user question
-- Failure/Edge Cases:
-    - Unknown question -> return fallback like "I don't have that information yet."
-    - Empty input -> prompt user to enter a question
+  - Gemini accurately scores responses and returns a clear dominant learning style profile
+- Failure/Edge Cases: 
+  - User gives vague/off-topic answers → Gemini asks a clarifying follow-up question
+  - User skips a question or inputs nothing → prompt user to answer before continuing
 
-### Functionality B: Member Registration
+### Functionality 2: Personalized Study Method Recommendations
 - Input:
-    - Free-text or form submission with member fields (for example: name, email, major, year)
+  - The user's VARK quiz result
 - Output:
-    - Submission result message (`success`, `exists`, or `incomplete`)
+  - A tailored list of study strategies and tool suggestions matched to their learning style
 - Success:
-    - Required fields are present and record is saved to the database
+  - Recommendations are specific and relevant (e.g., mind maps for Visual, voice memos for Auditory)
 - Failure/Edge Cases:
-    - Missing required field(s) -> return `incomplete` with missing field list
-    - Duplicate email -> return `exists`
-    - Invalid formats -> return validation error
+  - Mixed/tied results → suggest strategies from both tied modalities
+  - Gemini returns a generic response → system re-prompts with more specific context
+
+### Functionality 3: Quiz Retake & Profile Reset
+- Input:
+  - User requests to retake the quiz or start over
+- Output:
+  - Clears previous results and restarts the VARK quiz from the beginning
+- Success:
+  - Session resets cleanly and Gemini greets the user as if starting fresh
+- Failure/Edge Cases:
+  - User accidentally hits retake → confirm with "Are you sure? This will clear your current results."
+  - Page refresh mid-quiz → warn user that progress may be lost
