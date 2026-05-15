@@ -69,7 +69,7 @@ study-space/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/[your-username]/study-space.git
+git clone https://github.com/rebecca-j7/study-space.git
 cd study-space
 ```
 
@@ -130,6 +130,6 @@ Expected output when all tests pass:
 
 ## Author
 
-**[Rebecca Jenniings]**
+**[Rebecca Jennings]**
 [UCR] — [CS180 Section 001]
 [GitHub Profile](https://github.com/Rebecca-J7)
