@@ -1,75 +1,135 @@
-# Study Space
+# 📚 Study Space
 
-![Next.js](https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
-![TypeScript](https://img.shields.io/badge/typescript-%23407ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Figma](https://img.shields.io/badge/figma-%23F24E1E.svg?style=for-the-badge&logo=figma&logoColor=white)
-<br/>
-![ESLint](https://img.shields.io/badge/ESLint-4B3263?style=for-the-badge&logo=eslint&logoColor=white)
-![Prettier](https://img.shields.io/badge/prettier-1A2C34?style=for-the-badge&logo=prettier&logoColor=F7BA3E)
-![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
+> An AI-powered study style quiz app that helps you discover how you learn best — and gives you personalized study strategies to match.
+
+---
+
+## Description
+
+Study Space is a conversational web application powered by the Google Gemini API. Users are guided through a VARK-based learning style quiz (Visual, Auditory, Reading/Writing, Kinesthetic) via an AI chatbot. Based on their responses, the app generates a personalized learning profile and recommends tailored study strategies and tools to help them study smarter.
+
+Built as part of a university lab series practicing agent-driven TDD (Test-Driven Development) with a professional 3-tier architecture: interface → engine → storage.
+
+---
 
 ## Figma
 
-Designed with FIGMA <br />
+Design in progress with FIGMA <br />
 [Study Space Design File](https://www.figma.com/design/inir9GAH6v3iOJ7RU0tPKn/Pomodoro-Timer-Website?node-id=0-1&t=SL0U6Fc32FEbhVOj-1)
 
-## Node.js
+---
 
-Study Space runs on Node.js Version 20.10.0 and higher. Please ensure you have Node.js installed via the [official website](https://nodejs.org/en).
+## Project Structure
 
-## Next.js
-
-This project is built using [Next.js](https://nextjs.org), a React framework. Next.js is automatically installed when you install all dependencies for this project.
-
-## Environment Variables
-
-The following environment variables are required and must be stored in an `.env` file:
-
-```env
-N/A
+```
+study-space/
+├── src/                        # Source code directory
+│   ├── interface/              # User-facing chat and quiz logic
+│   ├── engine/                 # VARK scoring and Gemini recommendation engine
+│   └── storage/                # Session persistence and duplicate handling
+├── tests/                      # Test directory
+│   ├── interface/
+│   ├── engine/
+│   └── storage/
+├── FUNCTIONALITY.md            # Requirement specification (core functionalities A–D)
+├── CONTRACT.md                 # Design document (API contracts and data shapes)
+├── AGENT_PROMPTS.md            # Gemini coding agent prompts and guardrails
+├── requirements.txt
+├── conftest.py
+├── pytest.ini
+├── agent.py
+└── .env                        # API keys — never commit this file
 ```
 
-## Commands
+### Key Paths
 
-### Dependencies
+| Resource | Path |
+|---|---|
+| Source code | `src/` |
+| Tests | `tests/` |
+| Requirement specification | `FUNCTIONALITY.md` |
+| Design document | `CONTRACT.md` |
+
+---
+
+## Demo Video
+
+> 🎥 [Link to demo video — add when available]
+
+---
+
+## Setup Instructions
+
+### Prerequisites
+
+- Python 3.10+
+- A Google AI Studio account with a Gemini API key ([aistudio.google.com](https://aistudio.google.com))
+- Anaconda or a Python virtual environment (recommended)
+
+### 1. Clone the Repository
 
 ```bash
-# Install dependencies
-npm i
-
-# Add dependency
-npm i <dependency>
-
-# Remove dependency
-npm un <dependency>
+git clone https://github.com/[your-username]/study-space.git
+cd study-space
 ```
 
-### Running the Website Locally
+### 2. Install Dependencies
 
 ```bash
-# Open a browser at localhost:3000
-npm run dev
+pip install -r requirements.txt
 ```
 
-### Formatting Code via Prettier
+### 3. Set Up Environment Variables
+
+Create a `.env` file in the project root:
+
+```
+GEMINI_API_KEY=your_gemini_api_key_here
+GOOGLE_SHEET_NAME=StudySpaceResults
+```
+
+> ⚠️ Never commit your `.env` file. It is already listed in `.gitignore`.
+
+### 4. (Optional) Google Sheets Storage
+
+If using Google Sheets as a storage backend, place your `service_account.json` credentials file in the project root. This file is also excluded from version control via `.gitignore`.
+
+---
+
+## Running the Tests
 
 ```bash
-# Rewrite code recursively with proper formatting
-npm run format
-
-# Show formatting differences recursively
-npm run check
+pytest -q
 ```
 
-### Linting Code via Eslint
+Expected output when all tests pass:
 
-```bash
-npm run eslint
+```
+6 passed in 0.XX s
 ```
 
-### Build the Website
+---
 
-```bash
-npm run build
-```
+## Running the App
+
+> 🚧 Interface layer under active development — instructions will be updated here once the chat UI is complete.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| AI Engine | Google Gemini API (`google-genai`) |
+| Storage | In-memory (`SESSION_STORE`) → Google Sheets (`gspread`) |
+| Testing | `pytest` |
+| Auth | `google-auth`, `python-dotenv` |
+| Language | Python 3.10+ |
+
+---
+
+## Author
+
+**[Rebecca Jenniings]**
+[UCR] — [CS180 Section 001]
+[GitHub Profile](https://github.com/Rebecca-J7)
