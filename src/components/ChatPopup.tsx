@@ -27,11 +27,7 @@ const ChatPopup: React.FC = () => {
           { left: "calc(50% - 10px)", top: "calc(-40% - 18px)", delay: "0.15s" },
           { left: "calc(18% - 8px)", top: "calc(100% + 18px)", delay: "0.35s" },
         ].map((s, i) => (
-          <span
-            key={i}
-            className="chat-star"
-            style={{ left: s.left as any, top: s.top as any, animationDelay: s.delay }}
-          />
+          <span key={i} className={`chat-star star-${i + 1}`} />
         ))}
 
         <div className="chat-box w-[420px] rounded-xl border border-white/10 bg-gradient-to-br from-[#0b1226]/80 via-[#241033]/60 to-[#0b1426]/80 p-4 text-sm text-gray-100 shadow-2xl z-20">
