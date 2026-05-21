@@ -10,7 +10,7 @@ const Home = () => {
         <section id="welcome" className="py-24 text-center">
           <h1 className="text-5xl font-bold">Study Space</h1>
           <p className="mt-8 text-lg text-gray-200">
-            A space-themed focus companion. Build sessions, track progress, and chat with an AI assistant (coming soon).
+            An AI-powered study style quiz app that helps you discover how you learn best — and gives you personalized study strategies to match your learning style (coming soon).
           </p>
           <Planet />
           <ChatPopup />

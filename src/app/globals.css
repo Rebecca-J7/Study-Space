@@ -217,3 +217,40 @@ main, header, footer, .chat-popup {
 .chat-backdrop {
 	background: linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4));
 }
+
+/* per-star positioning moved from inline styles */
+.star-1 { left: calc(-20% - 20px); top: calc(-30% - 10px); animation-delay: 0s; }
+.star-2 { left: calc(0% - 10px); top: calc(-10% - 6px); animation-delay: 0.2s; }
+.star-3 { left: calc(12% - 6px); top: calc(-22% - 10px); animation-delay: 0.4s; }
+.star-4 { left: calc(28% - 8px); top: calc(-8% - 6px); animation-delay: 0.6s; }
+.star-5 { left: calc(46% - 4px); top: calc(-28% - 14px); animation-delay: 0.3s; }
+.star-6 { left: calc(68% - 10px); top: calc(-12% - 8px); animation-delay: 0.5s; }
+.star-7 { left: calc(96% + 6px); top: calc(-26% - 12px); animation-delay: 0.2s; }
+.star-8 { left: calc(-18% - 8px); top: calc(40% + 6px); animation-delay: 0.7s; }
+.star-9 { left: calc(6% - 6px); top: calc(82% + 10px); animation-delay: 0.4s; }
+.star-10 { left: calc(30% - 8px); top: calc(64% + 8px); animation-delay: 0.9s; }
+.star-11 { left: calc(52% - 6px); top: calc(78% + 12px); animation-delay: 0.2s; }
+.star-12 { left: calc(74% - 10px); top: calc(62% + 6px); animation-delay: 0.6s; }
+.star-13 { left: calc(110% + 12px); top: calc(74% + 8px); animation-delay: 0.8s; }
+.star-14 { left: calc(50% - 10px); top: calc(-40% - 18px); animation-delay: 0.15s; }
+.star-15 { left: calc(18% - 8px); top: calc(100% + 18px); animation-delay: 0.35s; }
+
+/* floating planets base styles */
+.floating-planet {
+	position: absolute;
+	border-radius: 9999px;
+	box-shadow: 0 8px 18px rgba(155,89,182,0.18);
+	animation: float-tiny 5s ease-in-out infinite;
+	z-index: 13;
+	pointer-events: none;
+}
+
+/* individual planet placements, sizes, colors and delays */
+.planet-1 { left: calc(-12% - 24px); top: calc(-48% - 24px); width: 44px; height: 44px; background: radial-gradient(circle at 30% 30%, #ffd4f0, #9b59ff); animation-delay: 0s; }
+.planet-2 { left: calc(50% - 26px); top: calc(-1% - 5px); width: 48px; height: 48px; background: radial-gradient(circle at 30% 30%, #9be6ff, #6b8cff); animation-delay: 0.25s; }
+.planet-3 { left: calc(100% + 12px); top: calc(-40% - 10px); width: 40px; height: 40px; background: radial-gradient(circle at 30% 30%, #ffd7a8, #ff7ab6); animation-delay: 0.6s; }
+.planet-4 { left: calc(102% + 120px); top: 20%; width: 38px; height: 38px; background: radial-gradient(circle at 30% 30%, #c7a7ff, #5ee7a3); animation-delay: 0.2s; }
+.planet-5 { left: calc(90% - 18px); top: calc(120% + 18px); width: 46px; height: 46px; background: radial-gradient(circle at 30% 30%, #9bffea, #4b6bff); animation-delay: 0.45s; }
+.planet-6 { left: calc(10% - 18px); top: calc(130% + 24px); width: 36px; height: 36px; background: radial-gradient(circle at 30% 30%, #ffd4f0, #ffb86b); animation-delay: 0.15s; }
+.planet-7 { left: calc(-18% - 22px); top: 36%; width: 40px; height: 40px; background: radial-gradient(circle at 30% 30%, #b99bff, #ff9bdb); animation-delay: 0.5s; }
+
