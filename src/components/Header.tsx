@@ -32,12 +32,7 @@ const Header = () => {
         >
           about
         </p>
-        <p
-          className="absolute right-14 top-4 cursor-pointer scroll-mt-14 text-black hover:text-white"
-          onClick={() => scrollToSection("skills")}
-        >
-          pomodoro
-        </p>
+        {/* Pomodoro link removed per request */}
       </div>
     </div>
   );

@@ -1,29 +1,14 @@
-import Link from "next/link";
+// import Link from "next/link";
 
 const Footer = () => {
   return (
-    <div className="absolute left-52 top-[4150px]">
-      <div className="flex flex-col gap-3">
-        <div className="text-web-purple-2 flex flex-row gap-7 text-xs">
-          <Link href="mailto:rjennings0007@gmail.com">
-            <p>email</p>
-          </Link>
-          <Link href="https://www.linkedin.com/in/rebecca-jennings-246a652a1/">
-            <p>linkedin</p>
-          </Link>
-          <Link href="https://github.com/Rebecca-J7">
-            <p>github</p>
-          </Link>
-          <Link href="/CS Resume.pdf">
-            <p>resume</p>
-          </Link>
-        </div>
+    <footer className="w-full py-8">
+      <div className="mx-auto flex max-w-4xl flex-col items-center gap-3">
         <p className="text-web-purple-2 text-xs">
-          © {new Date().getFullYear()} Rebecca's Portfolio. All rights
-          reserved.
+          © {new Date().getFullYear()} Study Space. All rights reserved.
         </p>
       </div>
-    </div>
+    </footer>
   );
 };
 
