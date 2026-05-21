@@ -5,9 +5,9 @@ import * as React from "react";
 declare global {
   namespace JSX {
     // Basic element and children types
-    type Element = React.ReactElement<any, any> | null;
+    type Element = React.ReactElement | null;
     interface IntrinsicElements {
-      [elemName: string]: any;
+      [elemName: string]: Record<string, unknown>;
     }
   }
 }

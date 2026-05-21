@@ -112,8 +112,8 @@ html, body, #__next {
 }
 
 .chat-box {
-	backdrop-filter: blur(6px);
 	-webkit-backdrop-filter: blur(6px);
+	backdrop-filter: blur(6px);
 }
 
 .mini-planet {
@@ -207,6 +207,23 @@ html, body, #__next {
 	50% { opacity: 1; transform: scale(1.4); }
 	100% { opacity: 0.2; transform: scale(1); }
 }
+
+/* per-star positions to avoid inline styles */
+.chat-star.star-1 { left: calc(-20% - 20px); top: calc(-30% - 10px); animation-delay: 0s; }
+.chat-star.star-2 { left: calc(0% - 10px); top: calc(-10% - 6px); animation-delay: 0.2s; }
+.chat-star.star-3 { left: calc(12% - 6px); top: calc(-22% - 12px); animation-delay: 0.4s; }
+.chat-star.star-4 { left: calc(28% - 8px); top: calc(-8% - 6px); animation-delay: 0.6s; }
+.chat-star.star-5 { left: calc(46% - 4px); top: calc(-28% - 14px); animation-delay: 0.3s; }
+.chat-star.star-6 { left: calc(68% - 10px); top: calc(-12% - 8px); animation-delay: 0.5s; }
+.chat-star.star-7 { left: calc(96% + 6px); top: calc(-26% - 12px); animation-delay: 0.2s; }
+.chat-star.star-8 { left: calc(-18% - 8px); top: calc(40% + 6px); animation-delay: 0.7s; }
+.chat-star.star-9 { left: calc(6% - 6px); top: calc(82% + 10px); animation-delay: 0.4s; }
+.chat-star.star-10 { left: calc(30% - 8px); top: calc(64% + 8px); animation-delay: 0.9s; }
+.chat-star.star-11 { left: calc(52% - 6px); top: calc(78% + 12px); animation-delay: 0.2s; }
+.chat-star.star-12 { left: calc(74% - 10px); top: calc(62% + 6px); animation-delay: 0.6s; }
+.chat-star.star-13 { left: calc(110% + 12px); top: calc(74% + 8px); animation-delay: 0.8s; }
+.chat-star.star-14 { left: calc(50% - 10px); top: calc(-40% - 18px); animation-delay: 0.15s; }
+.chat-star.star-15 { left: calc(18% - 8px); top: calc(100% + 18px); animation-delay: 0.35s; }
 
 /* ensure content sits above background */
 main, header, footer, .chat-popup {
