@@ -74,3 +74,22 @@ process_quiz_input (Full chain):
 - If incomplete → return {"status": "incomplete", "missing": [...]} and do NOT call save_quiz_progress
 - If complete → call save_quiz_progress(session_id, extracted data) and return its result
 - Return ONLY: "success", "exists", "error", "incomplete"
+
+## Prompt D: Interface Layer — CLI
+Create `src/interface/cli.py` for a study style quiz app called Study Space.
+
+Implement these two functions:
+
+1. format_response(result: dict) -> str
+2. run_session(process_fn=process_quiz_input)
+
+Rules:
+- Import process_quiz_input at the TOP of the file:
+  from src.engine.engine import process_quiz_input
+- run_session must accept process_fn as a parameter for dependency injection
+- Inside run_session, always call process_fn(session_id, user_input) — never call process_quiz_input directly
+- format_response must handle: "success", "exists", "incomplete", "error", and unknown statuses
+- No Gemini calls, no gspread access — interface layer only collects input and formats output
+- Generate a unique session_id using uuid.uuid4() inside run_session
+- If user input is empty, print a warning and return without calling process_fn
+- Return ONLY formatted human-readable strings from format_response
