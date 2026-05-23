@@ -8,6 +8,7 @@ from src.storage.storage_handler import save_quiz_progress
 load_dotenv()
 
 REQUIRED_KEYS = ["visual", "auditory", "reading", "kinesthetic"]
+CONFIDENCE_THRESHOLD = 40
 
 def _get_client():
     vertexai.init(
@@ -23,12 +24,19 @@ def extract_vark_scores(user_input: str) -> dict:
 Analyze this input and estimate VARK learning style scores.
 Input: "{user_input}"
 
-Return ONLY a valid JSON object with exactly these four keys: visual, auditory, reading, kinesthetic
-All values must be integers that sum to 100.
+Return ONLY a valid JSON object with exactly these five keys:
+- visual, auditory, reading, kinesthetic (integers that sum to 100)
+- confidence (integer 0-100 reflecting how confident you are in the scores
+  based on how much detail the input provides)
+
+Low confidence (0-39): input is too vague to score reliably e.g. "I like stuff"
+Medium confidence (40-69): some signals but could use more detail
+High confidence (70-100): clear learning style signals present
+
 Do not include any explanation, markdown, or code fences. Only the JSON object.
 
 Example output:
-{{"visual": 40, "auditory": 20, "reading": 25, "kinesthetic": 15}}
+{{"visual": 40, "auditory": 20, "reading": 25, "kinesthetic": 15, "confidence": 85}}
 """
         response = model.generate_content(prompt)
         raw = response.text.strip()
@@ -39,14 +47,33 @@ Example output:
         raw = raw.strip()
         parsed = json.loads(raw)
 
+        # Validate all required VARK keys present
         for key in REQUIRED_KEYS:
             if key not in parsed:
                 return {"status": "error", "message": "Could not extract scores."}
 
-        return {"status": "success", "data": parsed}
+        confidence = parsed.get("confidence", 0)
+
+        # Option C: confidence check
+        if confidence < CONFIDENCE_THRESHOLD:
+            return {
+                "status": "low_confidence",
+                "confidence": confidence,
+                "message": "Input too vague to determine learning style reliably."
+            }
+
+        # Extract just the VARK scores without confidence
+        scores = {k: parsed[k] for k in REQUIRED_KEYS}
+
+        return {
+            "status": "success",
+            "confidence": confidence,
+            "data": scores
+        }
 
     except Exception as e:
         return {"status": "error", "message": f"Could not extract scores. {str(e)}"}
+
 
 def reflect_on_scores(extracted: dict) -> dict:
     missing = [key for key in REQUIRED_KEYS if key not in extracted]
@@ -54,8 +81,14 @@ def reflect_on_scores(extracted: dict) -> dict:
         return {"complete": False, "missing": missing}
     return {"complete": True, "missing": []}
 
+
 def process_quiz_input(session_id: str, user_input: str) -> dict:
     extraction = extract_vark_scores(user_input)
+
+    # Handle low confidence — do NOT save
+    if extraction["status"] == "low_confidence":
+        return extraction
+
     if extraction["status"] != "success":
         data = extraction.get("data", {})
         if not data:
