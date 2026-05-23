@@ -12,13 +12,6 @@ Built as part of a university lab series practicing agent-driven TDD (Test-Drive
 
 ---
 
-## Figma
-
-Design in progress with FIGMA <br />
-[Study Space Design File](https://www.figma.com/design/inir9GAH6v3iOJ7RU0tPKn/Pomodoro-Timer-Website?node-id=0-1&t=SL0U6Fc32FEbhVOj-1)
-
----
-
 ## Project Structure
 
 ```
