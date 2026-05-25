@@ -1,18 +1,59 @@
 import uuid
 from src.engine.engine import process_quiz_input
+from src.engine.recommender import get_recommendations
+
+
+def _progress_bar(percent: int, width: int = 20) -> str:
+    filled = int(width * percent / 100)
+    return "█" * filled + "░" * (width - filled)
 
 
 def format_response(result: dict) -> str:
-    """Format the engine result dict into a human-readable string."""
     status = result.get("status")
 
     if status == "success":
-        return (
-            "\n✅ Your VARK profile has been saved!\n"
-            "Check your personalized study recommendations below.\n"
-        )
+        scores = result.get("scores", {})
+        dominant = result.get("dominant", "Unknown")
+
+        # Build score display
+        score_lines = "\n✅ Your VARK profile has been saved!\n\n📊 Your VARK Profile:\n"
+        for style, score in scores.items():
+            bar = _progress_bar(score)
+            score_lines += f"   {style.capitalize():<14} {score:>3}%  {bar}\n"
+        score_lines += f"\n   🏆 Dominant Style: {dominant} Learner\n"
+
+        # Get recommendations
+        vark_input = {**scores, "dominant": dominant}
+        rec_result = get_recommendations(vark_input)
+
+        rec_lines = "\n📚 Your Personalized Study Recommendations:\n"
+        if rec_result["status"] in ["success", "tied"]:
+            data = rec_result["data"]
+
+            rec_lines += "\n   Core Strategies:\n"
+            for tip in data["strategies"][:3]:
+                rec_lines += f"   • {tip}\n"
+
+            rec_lines += "\n   Recommended Tools:\n"
+            for tool in data["tools"]:
+                rec_lines += f"   • {tool}\n"
+
+            if data.get("personalized_tips"):
+                rec_lines += "\n   ✨ Personalized Tips Just for You:\n"
+                for tip in data["personalized_tips"][:3]:
+                    rec_lines += f"   • {tip}\n"
+
+            if rec_result["status"] == "tied":
+                tied = ", ".join(data["tied_styles"])
+                rec_lines += f"\n   💡 Note: You have a tied profile ({tied})!\n"
+        else:
+            rec_lines += "   Could not generate recommendations at this time.\n"
+
+        return score_lines + rec_lines
+
     elif status == "exists":
         return "\n⚠️  This session has already been recorded. No duplicate saved.\n"
+
     elif status == "incomplete":
         missing = result.get("missing", [])
         return (
@@ -35,10 +76,6 @@ def format_response(result: dict) -> str:
 
 
 def run_session(process_fn=process_quiz_input):
-    """
-    Run an interactive multi-turn VARK quiz session.
-    Accepts process_fn for dependency injection (testable without real API).
-    """
     print("\n🎓 Welcome to Study Space!")
     print("=" * 40)
     print("I'll help you discover your learning style.")
@@ -61,16 +98,13 @@ def run_session(process_fn=process_quiz_input):
             print("\n👋 Thanks for using Study Space! Good luck studying!\n")
             return
 
-        # Accumulate context across turns
         context.append(user_input)
         combined_input = " ".join(context)
 
-        # User signals they are done — force scoring with accumulated context
         if user_input.lower() in ["done", "finished", "results"]:
             if len(context) <= 1:
                 print("\n⚠️  Please share something about yourself first!\n")
                 continue
-            # Use all previous context except the "done" signal
             combined_input = " ".join(context[:-1])
             print("\n🔍 Analyzing your learning style...\n")
             result = process_fn(session_id, combined_input)
@@ -82,11 +116,8 @@ def run_session(process_fn=process_quiz_input):
         formatted = format_response(result)
         print(formatted)
 
-        # If confident enough — done
         if result.get("status") in ["success", "exists", "error", "incomplete"]:
             return
-
-        # If low confidence — loop and ask for more detail
 
 
 if __name__ == "__main__":

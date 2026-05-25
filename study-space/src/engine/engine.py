@@ -103,4 +103,13 @@ def process_quiz_input(session_id: str, user_input: str) -> dict:
     if not reflection["complete"]:
         return {"status": "incomplete", "missing": reflection["missing"]}
 
-    return save_quiz_progress(session_id, scores)
+    storage_result = save_quiz_progress(session_id, scores)
+    if  storage_result["status"] in ["success", "exists"]:
+        dominant = max(scores, key=scores.get)
+        return {
+            "status": storage_result["status"],
+            "id": storage_result.get("id", session_id),
+            "scores": scores,
+            "dominant": dominant.capitalize()
+        }
+    return storage_result
