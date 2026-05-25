@@ -9,9 +9,14 @@ def test_format_unknown():
     assert "unexpected" in output.lower() or "?" in output
 
 def test_format_success():
-    result = {"status": "success"}
+    result = {
+        "status": "success",
+        "scores": {"visual": 55, "auditory": 20, "reading": 10, "kinesthetic": 15},
+        "dominant": "Visual"
+    }
     output = format_response(result)
-    assert "saved" in output.lower()
+    assert "visual" in output.lower()
+    assert "dominant" in output.lower()
 
 def test_format_exists():
     result = {"status": "exists"}
@@ -33,10 +38,15 @@ def test_format_error():
 
 def test_run_session_success(monkeypatch, capsys):
     monkeypatch.setattr("builtins.input", lambda _: "I love watching videos and drawing diagrams.")
-    mock_result = {"status": "success"}
+    mock_result = {
+        "status": "success",
+        "scores": {"visual": 55, "auditory": 20, "reading": 10, "kinesthetic": 15},
+        "dominant": "Visual"
+    }
     run_session(process_fn=lambda sid, inp: mock_result)
     captured = capsys.readouterr()
-    assert "saved" in captured.out.lower()
+    assert "visual" in captured.out.lower()
+    assert "dominant" in captured.out.lower()
 
 def test_run_session_empty_input(monkeypatch, capsys):
     monkeypatch.setattr("builtins.input", lambda _: "")
@@ -60,7 +70,11 @@ def test_run_session_low_confidence_then_success(monkeypatch, capsys):
     """First response is low confidence, second is success — should loop and save."""
     responses = [
         {"status": "low_confidence", "confidence": 15, "message": "Too vague."},
-        {"status": "success"}
+        {
+            "status": "success",
+            "scores": {"visual": 55, "auditory": 20, "reading": 10, "kinesthetic": 15},
+            "dominant": "Visual"
+        }
     ]
     call_count = {"n": 0}
 
@@ -73,7 +87,7 @@ def test_run_session_low_confidence_then_success(monkeypatch, capsys):
     monkeypatch.setattr("builtins.input", lambda _: next(inputs))
     run_session(process_fn=mock_process)
     captured = capsys.readouterr()
-    assert "saved" in captured.out.lower()
+    assert "visual" in captured.out.lower()
 
 def test_run_session_quit_mid_session(monkeypatch, capsys):
     """User types quit after a low confidence response — should exit gracefully."""
