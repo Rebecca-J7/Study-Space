@@ -110,6 +110,7 @@ def process_quiz_input(session_id: str, user_input: str) -> dict:
             "status": storage_result["status"],
             "id": storage_result.get("id", session_id),
             "scores": scores,
-            "dominant": dominant.capitalize()
+            "dominant": dominant.capitalize(),
+            "storage": storage_result,
         }
     return storage_result
