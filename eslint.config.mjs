@@ -4,6 +4,7 @@ import tseslint from "typescript-eslint";
 import react from "eslint-plugin-react";
 import prettier from "eslint-plugin-prettier/recommended";
 import query from "@tanstack/eslint-plugin-query";
+import next from "@next/eslint-plugin-next"; // ← add this
 
 export default [
   {
@@ -19,10 +20,14 @@ export default [
   ...tseslint.configs.recommended,
   {
     plugins: {
-      react: react,
-      prettier: prettier,
+      react,
+      prettier,
       "@typescript-eslint": tseslint.plugin,
       "@tanstack/query": query,
+      "@next/next": next, // ← add this
+    },
+    rules: {
+      ...next.configs.recommended.rules, // ← add this
     },
   },
   {
@@ -30,7 +35,7 @@ export default [
       "react/react-in-jsx-scope": "off",
       "@typescript-eslint/no-unused-expressions": "off",
       "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": "error"
+      "@typescript-eslint/no-unused-vars": "error",
     },
   },
 ];

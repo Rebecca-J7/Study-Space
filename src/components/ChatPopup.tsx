@@ -1,6 +1,21 @@
 "use client";
 import React, { useState } from "react";
 
+type VarkScores = Record<string, number>;
+
+type FinalResult = {
+  scores: VarkScores;
+  dominant: string;
+  recommendations: {
+    data?: {
+      strategies?: string[];
+      tools?: string[];
+      personalized_tips?: string[];
+    };
+  };
+  storage: unknown;
+} | null;
+
 const ChatPopup: React.FC = () => {
   
   const [message, setMessage] = useState("");
@@ -9,7 +24,7 @@ const ChatPopup: React.FC = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [conversationContext, setConversationContext] = useState<string[]>([]);
   const [concluded, setConcluded] = useState(false);
-  const [finalResult, setFinalResult] = useState<any | null>(null);
+  const [finalResult, setFinalResult] = useState<FinalResult>(null);
 
   return (
     <div className="chat-popup mx-auto mt-20 relative flex w-full justify-center">
@@ -78,7 +93,7 @@ const ChatPopup: React.FC = () => {
               <div className="mt-3 rounded-xl border border-white/10 bg-gradient-to-br from-[#071226]/60 to-[#1b0f1f]/60 p-4 text-sm text-gray-100">
                 <h4 className="text-sm font-semibold mb-2">Your VARK Profile</h4>
                 <div className="space-y-2">
-                  {Object.entries(finalResult.scores || {}).map(([k, v]: any) => (
+                  {Object.entries(finalResult.scores).map(([k, v]) => (
                     <div key={k} className="flex items-center gap-3">
                       <div className="w-24 text-xs text-gray-300">{k.charAt(0).toUpperCase()+k.slice(1)}</div>
                       <div className="flex-1 h-3 bg-white/10 rounded overflow-hidden">
@@ -100,11 +115,11 @@ const ChatPopup: React.FC = () => {
                   <h5 className="text-xs font-semibold">Tools</h5>
                   <div className="text-xs mt-1">{(finalResult.recommendations?.data?.tools || []).join(', ')}</div>
                 </div>
-                {finalResult.recommendations?.data?.personalized_tips?.length > 0 && (
+                {(finalResult.recommendations?.data?.personalized_tips?.length ?? 0) > 0 && (
                   <div className="mt-2">
                     <h5 className="text-xs font-semibold">Personalized Tips</h5>
                     <ul className="list-disc list-inside text-xs mt-1">
-                      {finalResult.recommendations.data.personalized_tips.slice(0,3).map((t: string, i: number) => (
+                      {finalResult.recommendations.data?.personalized_tips?.slice(0,3).map((t: string, i: number) => (
                         <li key={i}>{t}</li>
                       ))}
                     </ul>
@@ -196,12 +211,12 @@ const ChatPopup: React.FC = () => {
                       // Build final structured result for a nicer card
                       setFinalResult({ scores, dominant, recommendations: recData, storage });
                       setConcluded(true);
-                    } catch (err) {
+                    } catch (_err) {
                       setMessages((m) => [...m, { role: "assistant", text: `Error fetching recommendations.` }]);
                       setConcluded(true);
                     }
                   }
-                } catch (err) {
+                } catch (_err) {
                   setMessages((m) => [...m, { role: "assistant", text: "Error connecting to backend." }]);
                 } finally {
                   setLoading(false);
