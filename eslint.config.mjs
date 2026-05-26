@@ -35,7 +35,11 @@ export default [
       "react/react-in-jsx-scope": "off",
       "@typescript-eslint/no-unused-expressions": "off",
       "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": "error",
+      "@typescript-eslint/no-unused-vars": ["error", {
+        "varsIgnorePattern": "^_",
+        "argsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }],
     },
   },
 ];
