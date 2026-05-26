@@ -1,13 +1,29 @@
 # 📚 Study Space
+
 > An AI-powered study style quiz app that helps you discover how you learn best — and gives you personalized study strategies to match.
 
 ---
 
 ## Description
 
-Study Space is a conversational web application powered by the Google Gemini API. Users are guided through a VARK-based learning style quiz (Visual, Auditory, Reading/Writing, Kinesthetic) via an AI chatbot. Based on their responses, the app generates a personalized learning profile and recommends tailored study strategies and tools to help them study smarter.
+Study Space is a conversational web application powered by the Google Gemini API. Users are guided through a VARK-based learning style quiz (Visual, Auditory, Reading/Writing, Kinesthetic) via an AI chatbot. The app uses a multi-turn conversation loop with a confidence scoring system — if a response is too vague, Gemini prompts the user for more detail before scoring.
+
+Based on quiz responses, the app generates a personalized learning profile with a visual score breakdown, dominant style identification, hardcoded core strategies, recommended tools, and Gemini-generated personalized tips tailored to the user's exact score profile.
 
 Built as part of a university lab series practicing agent-driven TDD (Test-Driven Development) with a professional 3-tier architecture: interface → engine → storage.
+
+---
+
+## Features
+
+- **Multi-turn conversation** — Gemini asks follow-up questions if your answer is too vague
+- **Confidence scoring** — responses below 40% confidence trigger a follow-up loop
+- **VARK score breakdown** — visual progress bars for all four learning dimensions
+- **Dominant style identification** — your strongest learning modality highlighted
+- **Hardcoded core strategies** — reliable, curated tips per VARK style
+- **Gemini personalized tips** — dynamic advice generated from your exact score profile
+- **Google Sheets storage** — quiz results saved with session ID and timestamp
+- **Duplicate detection** — prevents the same session from being saved twice
 
 ---
 
@@ -17,15 +33,19 @@ Built as part of a university lab series practicing agent-driven TDD (Test-Drive
 study-space/                        # Root repository
 ├── study-space/                    # Backend (FastAPI)
 │   ├── src/                        # Source code directory
-│   │   ├── interface/              # User-facing chat and quiz logic
-│   │   ├── engine/                 # VARK scoring and Gemini recommendation engine
-│   │   └── storage/                # Session persistence and duplicate handling
+│   │   ├── interface/              # CLI and presentation layer
+│   │   │   └── cli.py              # Multi-turn quiz session, format_response
+│   │   ├── engine/                 # VARK scoring and Gemini engine
+│   │   │   ├── engine.py           # Tool Use + Reflection + confidence scoring
+│   │   │   └── recommender.py      # Hardcoded + Gemini personalized recommendations
+│   │   └── storage/                # Session persistence
+│   │       └── storage_handler.py  # Google Sheets integration + duplicate detection
 │   ├── api/
 │   │   └── main.py                 # FastAPI app entrypoint
 │   ├── tests/                      # Test directory
-│   │   ├── interface/
-│   │   ├── engine/
-│   │   └── storage/
+│   │   ├── interface/              # 12 interface tests
+│   │   ├── engine/                 # 9 engine tests
+│   │   └── storage/                # 3 storage tests
 │   ├── FUNCTIONALITY.md            # Requirement specification (core functionalities A–D)
 │   ├── CONTRACT.md                 # Design document (API contracts and data shapes)
 │   ├── AGENT_PROMPTS.md            # Gemini coding agent prompts and guardrails
@@ -70,7 +90,8 @@ study-space/                        # Root repository
 
 - Python 3.10+
 - Node.js 20+
-- A Google AI Studio account with a Gemini API key ([aistudio.google.com](https://aistudio.google.com))
+- A Google Cloud project with Gemini Enterprise Agent Platform access
+- Application Default Credentials (ADC) configured via `gcloud`
 - Anaconda or a Python virtual environment (recommended)
 
 ### 1. Clone the Repository
@@ -91,22 +112,37 @@ cd study-space
 pip install -r requirements.txt
 ```
 
-#### 3. Set Up Backend Environment Variables
+#### 3. Configure Application Default Credentials (ADC)
+
+```bash
+bash <(curl -sSL https://storage.googleapis.com/cloud-samples-data/adc/setup_adc.sh)
+```
+
+#### 4. Set Up Backend Environment Variables
 
 Create a `.env` file inside the `study-space/` folder:
 
 ```
-GEMINI_API_KEY=your_gemini_api_key_here
+GOOGLE_CLOUD_PROJECT=your_project_id_here
+GOOGLE_CLOUD_LOCATION=us-central1
 GOOGLE_SHEET_NAME=StudySpaceResults
 ```
 
 > ⚠️ Never commit your `.env` file. It is already listed in `.gitignore`.
 
-#### 4. (Optional) Google Sheets Storage
+#### 5. (Optional) Google Sheets Storage
 
-If using Google Sheets as a storage backend, place your `service_account.json` credentials file in the `study-space/` folder. This file is also excluded from version control via `.gitignore`.
+Place your `service_account.json` credentials file in the `study-space/` folder. This file is excluded from version control via `.gitignore`.
 
-#### 5. Run the Backend Locally
+Share the Google Sheet named `StudySpaceResults` with the service account email as an Editor.
+
+#### 6. Run the CLI
+
+```bash
+python -m src.interface.cli
+```
+
+#### 7. Run the Backend API
 
 ```bash
 uvicorn api.main:app --host 0.0.0.0 --port 8001 --reload
@@ -118,7 +154,7 @@ The backend will be available at `http://localhost:8001`.
 
 ### Frontend Setup
 
-#### 6. Install Node Dependencies
+#### 8. Install Node Dependencies
 
 From the repo root:
 
@@ -126,7 +162,7 @@ From the repo root:
 npm install
 ```
 
-#### 7. Set Up Frontend Environment Variables
+#### 9. Set Up Frontend Environment Variables
 
 Create a `.env.local` file in the repo root:
 
@@ -134,9 +170,9 @@ Create a `.env.local` file in the repo root:
 STUDYSPACE_BACKEND=http://localhost:8001
 ```
 
-For production, set `STUDYSPACE_BACKEND` to your deployed backend URL (e.g. Railway).
+For production, set `STUDYSPACE_BACKEND` to your deployed Railway backend URL.
 
-#### 8. Run the Frontend Locally
+#### 10. Run the Frontend
 
 ```bash
 npm run dev
@@ -156,7 +192,34 @@ pytest -q
 Expected output when all tests pass:
 
 ```
-6 passed in 0.XX s
+27 passed in X.XX s
+```
+
+**Test coverage by layer:**
+
+| Layer | Tests |
+|---|---|
+| Storage | 3 tests |
+| Recommender engine | 3 tests |
+| Engine (Tool Use + Reflection + Confidence) | 9 tests |
+| Interface (CLI + format_response) | 12 tests |
+| **Total** | **27 tests** |
+
+---
+
+## How It Works
+
+```
+User types answer
+    → Multi-turn loop (asks for more detail if vague)
+        → Confidence check (threshold: 40%)
+            → VARK scoring via Gemini
+                → Reflection validates all four scores present
+                    → Google Sheets storage
+    ← VARK score breakdown with progress bars
+    ← Dominant style identified
+    ← Hardcoded core strategies + recommended tools
+    ← Gemini personalized tips based on exact score profile
 ```
 
 ---
@@ -184,7 +247,8 @@ Set the following in your Railway service dashboard under **Variables**:
 
 | Key | Value |
 |---|---|
-| `GEMINI_API_KEY` | Your Google Gemini API key |
+| `GOOGLE_CLOUD_PROJECT` | Your GCP project ID |
+| `GOOGLE_CLOUD_LOCATION` | `us-central1` |
 | `GOOGLE_SHEET_NAME` | `StudySpaceResults` |
 
 ---
@@ -195,10 +259,10 @@ Set the following in your Railway service dashboard under **Variables**:
 |---|---|
 | Frontend | Next.js 15, React, Tailwind CSS |
 | Backend | FastAPI, Uvicorn |
-| AI Engine | Google Gemini API (`google-genai`) |
+| AI Engine | Google Gemini (`gemini-2.5-flash` via Vertex AI / Agent Platform) |
+| Auth | Application Default Credentials (ADC), `google-auth` |
 | Storage | In-memory (`SESSION_STORE`) → Google Sheets (`gspread`) |
-| Testing | `pytest` |
-| Auth | `google-auth`, `python-dotenv` |
+| Testing | `pytest` with mocking via `unittest.mock` |
 | Language | Python 3.10+, TypeScript |
 | Deployment | Vercel (frontend), Railway (backend) |
 
