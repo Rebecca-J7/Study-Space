@@ -30,7 +30,7 @@ export default [
       "react/react-in-jsx-scope": "off",
       "@typescript-eslint/no-unused-expressions": "off",
       "no-unused-vars": "off",
-      "@typescript-eslint/no-unused-vars": "err"
+      "@typescript-eslint/no-unused-vars": "error"
     },
   },
 ];

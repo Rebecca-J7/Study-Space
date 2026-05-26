@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const BACKEND = process.env.STUDYSPACE_BACKEND || 'http://localhost:8001'
 
-export async function POST(req: NextRequest, { params }: { params: { slug: string[] } }) {
-  const slug = params.slug || []
+export async function POST(req: NextRequest, { params }: { params: Promise<{ slug: string[] }> }) {
+  const { slug: slugParam } = await params
+  const slug = slugParam || []
   const path = '/' + slug.join('/')
   const backendUrl = `${BACKEND}${path}`
 
