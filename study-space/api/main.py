@@ -96,5 +96,5 @@ def agent(req: AgentRequest):
 
 if __name__ == "__main__":
     import uvicorn
-
-    uvicorn.run("study-space.api.main:app", host="127.0.0.1", port=8001, reload=True)
+    port = int(os.environ.get("PORT", 8001))
+    uvicorn.run("api.main:app", host="0.0.0.0", port=port)
