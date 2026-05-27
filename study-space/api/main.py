@@ -101,6 +101,15 @@ def agent(req: AgentRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/v1/debug")
+def debug():
+    try:
+        from src.engine.engine import extract_vark_scores
+        result = extract_vark_scores("I love watching videos and diagrams")
+        return {"result": result}
+    except Exception as e:
+        import traceback
+        return {"error": str(e), "traceback": traceback.format_exc()}
 
 if __name__ == "__main__":
     import uvicorn
