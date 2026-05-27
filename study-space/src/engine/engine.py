@@ -1,8 +1,7 @@
 import os
 import json
 from dotenv import load_dotenv
-import vertexai
-from vertexai.generative_models import GenerativeModel
+from google import genai
 from src.storage.storage_handler import save_quiz_progress
 
 load_dotenv()
@@ -10,16 +9,14 @@ load_dotenv()
 REQUIRED_KEYS = ["visual", "auditory", "reading", "kinesthetic"]
 CONFIDENCE_THRESHOLD = 40
 
+
 def _get_client():
-    vertexai.init(
-        project=os.environ["GOOGLE_CLOUD_PROJECT"],
-        location="us-central1"
-    )
-    return GenerativeModel("gemini-2.5-flash")
+    return genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+
 
 def extract_vark_scores(user_input: str) -> dict:
     try:
-        model = _get_client()
+        client = _get_client()
         prompt = f"""
 Analyze this input and estimate VARK learning style scores.
 Input: "{user_input}"
@@ -38,7 +35,10 @@ Do not include any explanation, markdown, or code fences. Only the JSON object.
 Example output:
 {{"visual": 40, "auditory": 20, "reading": 25, "kinesthetic": 15, "confidence": 85}}
 """
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt
+        )
         raw = response.text.strip()
         if raw.startswith("```"):
             raw = raw.split("```")[1]
@@ -104,7 +104,7 @@ def process_quiz_input(session_id: str, user_input: str) -> dict:
         return {"status": "incomplete", "missing": reflection["missing"]}
 
     storage_result = save_quiz_progress(session_id, scores)
-    if  storage_result["status"] in ["success", "exists"]:
+    if storage_result["status"] in ["success", "exists"]:
         dominant = max(scores, key=scores.get)
         return {
             "status": storage_result["status"],

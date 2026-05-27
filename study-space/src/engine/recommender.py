@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
-import vertexai
-from vertexai.generative_models import GenerativeModel
+from google import genai
 
 load_dotenv()
 
@@ -51,12 +50,8 @@ HARDCODED_TIPS = {
 }
 
 
-def _get_model():
-    vertexai.init(
-        project=os.environ["GOOGLE_CLOUD_PROJECT"],
-        location="us-central1"
-    )
-    return GenerativeModel("gemini-2.5-flash")
+def _get_client():
+    return genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 
 def get_recommendations(vark_result: dict) -> dict:
@@ -76,8 +71,7 @@ def get_recommendations(vark_result: dict) -> dict:
     tied_styles = [k.capitalize() for k, v in scores.items() if v == max_score]
 
     try:
-        # Get Gemini personalized tips
-        model = _get_model()
+        client = _get_client()
         prompt = f"""
 A student completed a VARK learning style quiz with these results:
 Visual: {scores['visual']}%, Auditory: {scores['auditory']}%, 
@@ -88,7 +82,10 @@ Give 3 highly specific, personalized study tips for this exact score profile.
 Keep each tip to one sentence. Do not use generic advice.
 Format as a plain numbered list, no markdown, no headers.
 """
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt
+        )
         gemini_tips = response.text.strip().split("\n")
         gemini_tips = [t.strip() for t in gemini_tips if t.strip()]
 
