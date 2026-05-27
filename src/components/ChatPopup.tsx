@@ -160,7 +160,7 @@ const ChatPopup: React.FC = () => {
                 try {
                   // Send the combined conversation context so the backend can analyze cumulatively
                   const combined = [...conversationContext, userText].join(" ");
-                  const res = await fetch("http://localhost:8001/v1/process_quiz", {
+                  const res = await fetch("/api/study-space/v1/process_quiz", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ session_id: sessionId, input: combined }),
@@ -201,7 +201,7 @@ const ChatPopup: React.FC = () => {
 
                     // Fetch recommendations (via Next.js proxy)
                     try {
-                      const recRes = await fetch(`http://localhost:8001/v1/recommendations`, {
+                      const recRes = await fetch("/api/study-space/v1/recommendations", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ vark_result: { ...scores, dominant } }),
