@@ -110,6 +110,129 @@ def debug():
     except Exception as e:
         import traceback
         return {"error": str(e), "traceback": traceback.format_exc()}
+    
+# In-memory session store for quiz state
+QUIZ_SESSIONS = {}
+
+QUIZ_QUESTIONS = [
+    "Q1: When learning something new, do you prefer watching a video/diagram or reading a written explanation?",
+    "Q2: When you need to remember something, do you write it down, say it out loud, or do something physical?",
+    "Q3: When solving a problem, do you sketch it out, talk it through, write steps, or just try it hands-on?",
+    "Q4: In class, do you learn best from slides/visuals, lectures, handouts, or lab/practice activities?",
+    "Q5: When reviewing for an exam, do you use diagrams, recordings, notes/summaries, or practice problems?"
+]
+
+
+class AnswerRequest(BaseModel):
+    session_id: str
+    answer: str
+
+
+class FollowupRequest(BaseModel):
+    session_id: str
+    question: str
+
+
+@app.post("/v1/quiz/start")
+def quiz_start():
+    """Start a new quiz session and return the first question."""
+    session_id = str(uuid.uuid4())
+    QUIZ_SESSIONS[session_id] = {
+        "answers": [],
+        "question_index": 0,
+        "complete": False,
+        "result": None
+    }
+    return {
+        "session_id": session_id,
+        "question": QUIZ_QUESTIONS[0],
+        "question_number": 1,
+        "total_questions": len(QUIZ_QUESTIONS)
+    }
+
+
+@app.post("/v1/quiz/answer")
+def quiz_answer(req: AnswerRequest):
+    """Submit an answer to the current question."""
+    session = QUIZ_SESSIONS.get(req.session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found. Please start a new quiz.")
+
+    # Save answer
+    session["answers"].append(req.answer)
+    session["question_index"] += 1
+
+    # If more questions remain return the next one
+    if session["question_index"] < len(QUIZ_QUESTIONS):
+        return {
+            "session_id": req.session_id,
+            "question": QUIZ_QUESTIONS[session["question_index"]],
+            "question_number": session["question_index"] + 1,
+            "total_questions": len(QUIZ_QUESTIONS),
+            "status": "in_progress"
+        }
+
+    # All questions answered — score them
+    process_quiz_input, _ = _import_engine()
+    if process_quiz_input is None:
+        raise HTTPException(status_code=503, detail="Backend AI dependencies not installed.")
+
+    combined = " ".join(session["answers"])
+    result = process_quiz_input(req.session_id, combined)
+    session["result"] = result
+    session["complete"] = result.get("status") != "low_confidence"
+
+    return {
+        "session_id": req.session_id,
+        "status": result.get("status"),
+        "result": result
+    }
+
+
+@app.post("/v1/quiz/elaborate")
+def quiz_elaborate(req: AnswerRequest):
+    """Submit elaboration when confidence is low."""
+    session = QUIZ_SESSIONS.get(req.session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found.")
+
+    process_quiz_input, _ = _import_engine()
+    if process_quiz_input is None:
+        raise HTTPException(status_code=503, detail="Backend AI dependencies not installed.")
+
+    # Add elaboration to existing answers and re-score
+    session["answers"].append(req.answer)
+    combined = " ".join(session["answers"])
+    result = process_quiz_input(req.session_id, combined)
+    session["result"] = result
+    session["complete"] = result.get("status") != "low_confidence"
+
+    return {
+        "session_id": req.session_id,
+        "status": result.get("status"),
+        "result": result
+    }
+
+
+@app.post("/v1/quiz/followup")
+def quiz_followup(req: FollowupRequest):
+    """Ask a follow-up question after results are shown."""
+    session = QUIZ_SESSIONS.get(req.session_id)
+    if not session or not session.get("result"):
+        raise HTTPException(status_code=404, detail="No completed session found.")
+
+    try:
+        from src.engine.engine import answer_followup
+        result = session["result"]
+        dominant = result.get("dominant", "Visual")
+        scores = result.get("scores", {})
+        answer = answer_followup(req.question, dominant, scores)
+        return {
+            "session_id": req.session_id,
+            "answer": answer
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
