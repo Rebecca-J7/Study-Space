@@ -1,22 +1,22 @@
 import json
 from unittest.mock import patch, MagicMock
-from src.engine.engine import extract_vark_scores, reflect_on_scores, process_quiz_input
+from src.engine.engine import extract_vark_scores, reflect_on_scores, process_quiz_input, answer_followup
 
 MOCK_SCORES = {"visual": 40, "auditory": 20, "reading": 25, "kinesthetic": 15, "confidence": 85}
 
-def make_mock_model(scores=MOCK_SCORES):
+def make_mock_model(scores=None):
+    if scores is None:
+        scores = MOCK_SCORES
     mock_response = MagicMock()
-    mock_response.text = json.dumps(scores)
+    mock_response.text = json.dumps(scores)  # must be a real string
     mock_model = MagicMock()
     mock_model.generate_content.return_value = mock_response
     return mock_model
 
 def make_mock_client_low_confidence():
+    low_conf_scores = {"visual": 25, "auditory": 25, "reading": 25, "kinesthetic": 25, "confidence": 15}
     mock_response = MagicMock()
-    mock_response.text = json.dumps({
-        "visual": 25, "auditory": 25, "reading": 25, "kinesthetic": 25,
-        "confidence": 15
-    })
+    mock_response.text = json.dumps(low_conf_scores)
     mock_model = MagicMock()
     mock_model.generate_content.return_value = mock_response
     return mock_model
@@ -82,3 +82,26 @@ def test_process_quiz_low_confidence_does_not_save():
             result = process_quiz_input("session_conf_001", "I like stuff.")
     assert result["status"] == "low_confidence"
     mock_save.assert_not_called()
+
+# --- Post-Results Q&A Tests ---
+
+def test_answer_followup_returns_string():
+    """answer_followup should return a non-empty string response."""
+    with patch("src.engine.engine._get_client", return_value=make_mock_model()):
+        result = answer_followup(
+            question="How should I study for math exams?",
+            dominant="Visual",
+            scores={"visual": 55, "auditory": 10, "reading": 15, "kinesthetic": 20}
+        )
+    assert isinstance(result, str)
+    assert len(result) > 0
+
+def test_answer_followup_empty_question():
+    """Empty question should return a fallback string."""
+    result = answer_followup(
+        question="",
+        dominant="Visual",
+        scores={"visual": 55, "auditory": 10, "reading": 15, "kinesthetic": 20}
+    )
+    assert isinstance(result, str)
+    assert len(result) > 0
