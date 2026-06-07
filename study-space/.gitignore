@@ -6,3 +6,6 @@ __pycache__/
 *.egg-info/
 dist/
 service_account.json
+.env.local
+application_default_credentials.json
+.venv/

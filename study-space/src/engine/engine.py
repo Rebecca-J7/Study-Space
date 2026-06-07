@@ -1,7 +1,8 @@
 import os
 import json
 from dotenv import load_dotenv
-from google import genai
+import vertexai
+from vertexai.generative_models import GenerativeModel
 from src.storage.storage_handler import save_quiz_progress
 
 load_dotenv()
@@ -11,12 +12,16 @@ CONFIDENCE_THRESHOLD = 40
 
 
 def _get_client():
-    return genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+    vertexai.init(
+        project=os.environ["GOOGLE_CLOUD_PROJECT"],
+        location="us-central1"
+    )
+    return GenerativeModel("gemini-2.5-flash")
 
 
 def extract_vark_scores(user_input: str) -> dict:
     try:
-        client = _get_client()
+        model = _get_client()
         prompt = f"""
 Analyze this input and estimate VARK learning style scores.
 Input: "{user_input}"
@@ -35,10 +40,7 @@ Do not include any explanation, markdown, or code fences. Only the JSON object.
 Example output:
 {{"visual": 40, "auditory": 20, "reading": 25, "kinesthetic": 15, "confidence": 85}}
 """
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt
-        )
+        response = model.generate_content(prompt)
         raw = response.text.strip()
         if raw.startswith("```"):
             raw = raw.split("```")[1]
@@ -47,14 +49,12 @@ Example output:
         raw = raw.strip()
         parsed = json.loads(raw)
 
-        # Validate all required VARK keys present
         for key in REQUIRED_KEYS:
             if key not in parsed:
                 return {"status": "error", "message": "Could not extract scores."}
 
         confidence = parsed.get("confidence", 0)
 
-        # Option C: confidence check
         if confidence < CONFIDENCE_THRESHOLD:
             return {
                 "status": "low_confidence",
@@ -62,7 +62,6 @@ Example output:
                 "message": "Input too vague to determine learning style reliably."
             }
 
-        # Extract just the VARK scores without confidence
         scores = {k: parsed[k] for k in REQUIRED_KEYS}
 
         return {
@@ -85,7 +84,6 @@ def reflect_on_scores(extracted: dict) -> dict:
 def process_quiz_input(session_id: str, user_input: str) -> dict:
     extraction = extract_vark_scores(user_input)
 
-    # Handle low confidence — do NOT save
     if extraction["status"] == "low_confidence":
         return extraction
 
@@ -110,7 +108,27 @@ def process_quiz_input(session_id: str, user_input: str) -> dict:
             "status": storage_result["status"],
             "id": storage_result.get("id", session_id),
             "scores": scores,
-            "dominant": dominant.capitalize(),
-            "storage": storage_result,
+            "dominant": dominant.capitalize()
         }
     return storage_result
+
+
+def answer_followup(question: str, dominant: str, scores: dict) -> str:
+    if not question.strip():
+        return "Please ask a question about your learning style or study tips!"
+
+    try:
+        model = _get_client()
+        prompt = f"""
+You are a helpful study coach for a {dominant} learner.
+Their VARK scores are: Visual {scores.get('visual')}%, Auditory {scores.get('auditory')}%, 
+Reading {scores.get('reading')}%, Kinesthetic {scores.get('kinesthetic')}%.
+
+Answer this question in 2-3 sentences with specific, practical advice:
+"{question}"
+"""
+        response = model.generate_content(prompt)
+        return response.text.strip()
+
+    except Exception as e:
+        return f"I couldn't generate an answer right now. Please try again. ({str(e)})"

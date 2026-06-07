@@ -118,7 +118,137 @@ def run_session(process_fn=process_quiz_input):
 
         if result.get("status") in ["success", "exists", "error", "incomplete"]:
             return
+        
+QUIZ_QUESTIONS = [
+    "Q1: When learning something new, do you prefer watching a video/diagram or reading a written explanation?",
+    "Q2: When you need to remember something, do you write it down, say it out loud, or do something physical?",
+    "Q3: When solving a problem, do you sketch it out, talk it through, write steps, or just try it hands-on?",
+    "Q4: In class, do you learn best from slides/visuals, lectures, handouts, or lab/practice activities?",
+    "Q5: When reviewing for an exam, do you use diagrams, recordings, notes/summaries, or practice problems?"
+]
+
+
+def run_quiz(process_fn=process_quiz_input):
+    """
+    Run a structured 5-question VARK quiz session.
+    Collects all answers then scores them together.
+    """
+    print("\n🎓 Welcome to Study Space!")
+    print("=" * 40)
+    print("I'll ask you 5 quick questions to discover your learning style.")
+    print("Type 'quit' or 'exit' at any time to stop.\n")
+
+    session_id = str(uuid.uuid4())
+    answers = []
+
+    for i, question in enumerate(QUIZ_QUESTIONS):
+        print(f"\n{question}\n")
+        while True:
+            answer = input("Your answer: ").strip()
+
+            if answer.lower() in ["quit", "exit"]:
+                print("\n👋 Thanks for using Study Space! Good luck studying!\n")
+                return
+
+            if not answer:
+                print("⚠️  Please enter an answer before continuing.\n")
+                continue
+
+            answers.append(answer)
+            break
+
+    # Combine all answers into one input for scoring
+    combined = " ".join(answers)
+
+    print("\n🔍 Analyzing your answers...\n")
+    result = process_fn(session_id, combined)
+    print(format_response(result))
+
+def run_quiz_with_followup(process_fn=process_quiz_input, followup_fn=None):
+    """
+    Run a structured 5-question quiz followed by a post-results Q&A session.
+    Accepts process_fn and followup_fn for dependency injection.
+    """
+    if followup_fn is None:
+        from src.engine.engine import answer_followup
+        followup_fn = answer_followup
+
+    print("\n🎓 Welcome to Study Space!")
+    print("=" * 40)
+    print("I'll ask you 5 quick questions to discover your learning style.")
+    print("Type 'quit' or 'exit' at any time to stop.\n")
+
+    session_id = str(uuid.uuid4())
+    answers = []
+
+    # Phase 1: Structured Quiz
+    for question in QUIZ_QUESTIONS:
+        print(f"\n{question}\n")
+        while True:
+            answer = input("Your answer: ").strip()
+
+            if answer.lower() in ["quit", "exit"]:
+                print("\n👋 Thanks for using Study Space! Good luck studying!\n")
+                return
+
+            if not answer:
+                print("⚠️  Please enter an answer before continuing.\n")
+                continue
+
+            answers.append(answer)
+            break
+
+    # Score all answers together
+    combined = " ".join(answers)
+
+    while True:
+        print("\n🔍 Analyzing your answers...\n")
+        result = process_fn(session_id, combined)
+
+        if result.get("status") == "low_confidence":
+            print(format_response(result))
+            elaboration = input("Your answer: ").strip()
+
+            if elaboration.lower() in ["quit", "exit"]:
+                print("\n👋 Thanks for using Study Space! Good luck studying!\n")
+                return
+
+            if elaboration.lower() in ["done", "finished"]:
+                # Force score with existing answers
+                print("\n🔍 Scoring with your current answers...\n")
+                result = process_fn(session_id, combined)
+                print(format_response(result))
+                break
+
+            # Add elaboration to combined input and retry
+            combined = combined + " " + elaboration
+            continue
+
+        # Confident enough — show results and break
+        print(format_response(result))
+        break
+
+    # Phase 2: Post-Results Q&A
+    if result.get("status") not in ["success", "exists"]:
+        return
+
+    dominant = result.get("dominant", "Visual")
+    scores = result.get("scores", {})
+
+    print("\n💬 Want to ask anything about your learning style or study tips?")
+    print("Type 'done' or 'quit' to finish.\n")
+
+    while True:
+        question = input("Your question: ").strip()
+
+        if not question or question.lower() in ["quit", "exit", "done", "finished"]:
+            print("\n👋 Thanks for using Study Space! Good luck studying!\n")
+            return
+
+        answer = followup_fn(question, dominant, scores)
+        print(f"\n💡 {answer}\n")
 
 
 if __name__ == "__main__":
-    run_session()
+    # run_session()
+    run_quiz_with_followup()
