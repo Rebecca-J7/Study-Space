@@ -1,4 +1,4 @@
-# Study Space — Contract.md
+# CONTRACT.md
 
 This document defines the interface contracts between the three layers of Study Space:
 `interface → engine → storage`
