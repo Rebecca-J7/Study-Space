@@ -8,6 +8,36 @@ def _progress_bar(percent: int, width: int = 20) -> str:
     return "█" * filled + "░" * (width - filled)
 
 
+def _get_nonempty_input(prompt: str = "Your answer: ", exit_on_empty: bool = False) -> str | None:
+    """
+    Prompt the user for input.
+
+    If `exit_on_empty` is False (default), empty input will re-prompt until non-empty.
+    If `exit_on_empty` is True, an empty input will print a warning and return an empty
+    string so callers can exit gracefully (preserves previous `run_session` behavior).
+
+    Returns:
+    - `None` when the user types 'quit'/'exit'
+    - non-empty string for normal answers
+    - empty string when `exit_on_empty` is True and user entered nothing
+    """
+    while True:
+        user_input = input(prompt).strip()
+
+        if not user_input:
+            if exit_on_empty:
+                print("\n⚠️  No input provided. Please try again.\n")
+                return ""
+            print("\n⚠️  No input provided. Please try again.\n")
+            continue
+
+        if user_input.lower() in ["quit", "exit"]:
+            print("\n👋 Thanks for using Study Space! Good luck studying!\n")
+            return None
+
+        return user_input
+
+
 def format_response(result: dict) -> str:
     status = result.get("status")
 
@@ -88,14 +118,10 @@ def run_session(process_fn=process_quiz_input):
     print("For example: Do you prefer videos, reading, hands-on practice, or listening?\n")
 
     while True:
-        user_input = input("Your answer: ").strip()
-
-        if not user_input:
-            print("\n⚠️  No input provided. Please try again.\n")
+        user_input = _get_nonempty_input("Your answer: ", exit_on_empty=True)
+        if user_input is None:
             return
-
-        if user_input.lower() in ["quit", "exit"]:
-            print("\n👋 Thanks for using Study Space! Good luck studying!\n")
+        if user_input == "":
             return
 
         context.append(user_input)
@@ -144,15 +170,9 @@ def run_quiz(process_fn=process_quiz_input):
     for i, question in enumerate(QUIZ_QUESTIONS):
         print(f"\n{question}\n")
         while True:
-            answer = input("Your answer: ").strip()
-
-            if answer.lower() in ["quit", "exit"]:
-                print("\n👋 Thanks for using Study Space! Good luck studying!\n")
+            answer = _get_nonempty_input("Your answer: ")
+            if answer is None:
                 return
-
-            if not answer:
-                print("⚠️  Please enter an answer before continuing.\n")
-                continue
 
             answers.append(answer)
             break
@@ -185,15 +205,9 @@ def run_quiz_with_followup(process_fn=process_quiz_input, followup_fn=None):
     for question in QUIZ_QUESTIONS:
         print(f"\n{question}\n")
         while True:
-            answer = input("Your answer: ").strip()
-
-            if answer.lower() in ["quit", "exit"]:
-                print("\n👋 Thanks for using Study Space! Good luck studying!\n")
+            answer = _get_nonempty_input("Your answer: ")
+            if answer is None:
                 return
-
-            if not answer:
-                print("⚠️  Please enter an answer before continuing.\n")
-                continue
 
             answers.append(answer)
             break
@@ -207,10 +221,8 @@ def run_quiz_with_followup(process_fn=process_quiz_input, followup_fn=None):
 
         if result.get("status") == "low_confidence":
             print(format_response(result))
-            elaboration = input("Your answer: ").strip()
-
-            if elaboration.lower() in ["quit", "exit"]:
-                print("\n👋 Thanks for using Study Space! Good luck studying!\n")
+            elaboration = _get_nonempty_input("Your answer: ")
+            if elaboration is None:
                 return
 
             if elaboration.lower() in ["done", "finished"]:
@@ -239,9 +251,8 @@ def run_quiz_with_followup(process_fn=process_quiz_input, followup_fn=None):
     print("Type 'done' or 'quit' to finish.\n")
 
     while True:
-        question = input("Your question: ").strip()
-
-        if not question or question.lower() in ["quit", "exit", "done", "finished"]:
+        question = _get_nonempty_input("Your question: ")
+        if question is None or question.lower() in ["done", "finished"]:
             print("\n👋 Thanks for using Study Space! Good luck studying!\n")
             return
 
