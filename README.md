@@ -43,7 +43,7 @@ Built as part of a university lab series (CS180) practicing agent-driven TDD (Te
 
 ## Demo Video
 
-> 🎥 [Link to demo video — add when available]
+> 🎥 [Demo Video](https://drive.google.com/file/d/1Hxd2JQqpCWtOsKix-iMiNQ6nxnH-UJtq/view?usp=sharing)
 
 ---
 
